@@ -1,5 +1,5 @@
 
-import unittest
+import unittest, json
 
 from webapp2 import Request
 
@@ -13,9 +13,11 @@ from tests.model_interface import ModelInterface
 
 class MyAuth(Authentication):
 
+    salt_key = 'ray_salt_key'
+
     @classmethod
-    def authenticate(cls, username, password):
-        if username == 'felipe' and password == '123':
+    def authenticate(cls, login_data):
+        if login_data['username'] == 'felipe' and login_data['password'] == '123':
             return {'username': 'felipe'}
 
 
@@ -42,15 +44,19 @@ class TestShield(unittest.TestCase):
 
     def test(self):
         req = Request.blank('/api/_login', method='POST')
-        req.json = {"username": "felipe", "password": '123'}
+        req.json = {'username': 'felipe', 'password': '123'}
         response = req.get_response(application)
-        cookie = response.headers['Set-Cookie']
+        response.charset = 'utf8'
+        token = json.loads(response.text)['result']['token']
         self.assertEqual(200, response.status_int)
 
-        req = Request.blank('/api/person/', method='GET')
-        req.headers['Cookie'] = cookie
+        req = Request.blank('/api/person/', method='GET', headers={'Authentication': token})
         response = req.get_response(application)
         self.assertEqual(200, response.status_int)
+
+        req = Request.blank('/api/person/', method='GET', headers={'Authentication': 'random-token'})
+        response = req.get_response(application)
+        self.assertEquals(404, response.status_int)
 
         req = Request.blank('/api/person/', method='GET')
         response = req.get_response(application)

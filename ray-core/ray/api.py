@@ -1,6 +1,6 @@
 import webapp2, json
 from endpoint import EndpointHandler
-from login import LoginHandler, LogoutHandler
+from login import LoginHandler
 from actions import ActionAPI
 from . import exceptions, http
 
@@ -47,8 +47,8 @@ class ApiHandler(webapp2.RequestHandler):
             print e
         except exceptions.HookException:
             response_code = 400
-        except Exception as e:
-            raise e
+        # except Exception as e:
+        #     raise e
         else:
             response_code = 500
         finally:
@@ -58,18 +58,23 @@ class ApiHandler(webapp2.RequestHandler):
     def process(self, fullpath):
         if self.is_login(fullpath):
             return LoginHandler(self.request, self.response, fullpath).process()
+        else
+            if self.is_endpoint(fullpath):
+                endpoint_handler = EndpointHandler(self.request, fullpath)
+                if endpoint_handler.is_protected():
+                    try
+                        self.request.logged_user = endpoint_handler.endpoint_authentication().unpack_jwt(self.__request.headers['Authentication'])
+                        return endpoint_handler.process()
+                    except
+                        self.response.status = 401
+                else
+                    return endpoint_handler.process()
 
-        if self.is_logout(fullpath):
-            return LogoutHandler(self.response).logout()
+            elif self.is_action(fullpath):
+                return self.__handle_action(fullpath)
 
-        elif self.is_endpoint(fullpath):
-            return EndpointHandler(self.request, fullpath).process()
-
-        elif self.is_action(fullpath):
-            return self.__handle_action(fullpath)
-
-        else:
-            self.response.status = 404
+            else:
+                self.response.status = 404
 
     def __handle_action(self, url):
         # url e.g: /api/user/123/action
@@ -82,9 +87,6 @@ class ApiHandler(webapp2.RequestHandler):
 
     def is_login(self, full_path):
         return full_path == '/api/_login'
-
-    def is_logout(self, full_path):
-        return full_path == '/api/_logout'
 
     def is_endpoint(self, full_path):
         full_path = full_path.split('?')[0]
@@ -108,3 +110,6 @@ class ApiHandler(webapp2.RequestHandler):
                 return True
 
         return len(full_path.split('/')) == 5
+
+    def is_unprotected_endpoint(self, full_path):
+       
