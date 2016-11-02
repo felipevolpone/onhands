@@ -1,5 +1,4 @@
 
-
 class Model(object):
 
     def __init__(self, *args, **kwargs):
@@ -37,7 +36,18 @@ class Model(object):
         return self.__save()
 
     def put(self):
-        return self.__save()
+        result = self.__save()
+
+        if result and not self._hasnt_hooks():
+
+            for hook in self.hooks:
+                instance = hook()
+                try:
+                    instance.after_save(self)
+                except NotImplementedError:
+                    pass
+
+        return result
 
     def __save(self):
         if self._hasnt_hooks():

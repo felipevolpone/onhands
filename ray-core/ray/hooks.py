@@ -1,7 +1,7 @@
 
 class Hook(object):
 
-    methods = ['before_save', 'before_delete']
+    methods = ['before_save', 'before_delete', 'after_save']
 
     def before_save(self, entity):
         """
@@ -14,3 +14,9 @@ class Hook(object):
     def before_delete(self, entity):
         raise NotImplementedError()
         # FIXME its not raising exception on the same way that before_save is
+
+    def after_save(self, entity):
+        """
+            after_save it's the moment after the entity is saved.
+        """
+        raise NotImplementedError
