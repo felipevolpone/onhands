@@ -38,14 +38,18 @@ class Model(object):
     def put(self):
         result = self.__save()
 
-        if result and not self._hasnt_hooks():
+        if self._hasnt_hooks():
+            return result
+
+        if result:
 
             for hook in self.hooks:
                 instance = hook()
-                try:
-                    instance.after_save(self)
-                except NotImplementedError:
-                    pass
+
+                # this is to make AND with the result of all hooks
+                # the flow just continue if the result of all hoks is true
+
+                instance.after_save(self)
 
         return result
 
