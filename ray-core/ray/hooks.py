@@ -12,6 +12,10 @@ class Hook(object):
         return True
 
     def before_delete(self, entity):
+        """
+            before_delete it's the moment right before the entity is deleted.
+            the entity will only be removed if this method returns true.
+        """
         return True
 
     def after_save(self, entity):
