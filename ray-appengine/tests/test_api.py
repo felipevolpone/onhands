@@ -4,7 +4,6 @@ from ray_appengine.all import GAEModel
 from .gae_test import TestCreateEnviroment
 from ray.endpoint import endpoint
 
-
 @endpoint('/post')
 class User(GAEModel):
     name = ndb.StringProperty()
@@ -88,6 +87,14 @@ class TestIntegrated(TestCreateEnviroment):
 
         result = Post.find(owner=1, text='any_felipe')
         self.assertEqual(0, len([p.to_json() for p in result]))
+
+    def test_find_using_invalid_key(self):
+        u = User(name='ray', age=50).put()
+        Post(owner=u.key, text='piano').put()
+
+        with self.assertRaises(Exception) as e:
+            result = Post.find(owner='key')
+        self.assertEqual(str(e.exception), 'ndb Key id should always be a long')
 
     def test_find(self):
         # setup

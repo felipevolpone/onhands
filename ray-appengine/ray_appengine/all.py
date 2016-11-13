@@ -20,7 +20,9 @@ class GAEModel(AppEngineModel, Model):
         for field_name in json_attributes.keys():
             value = json_attributes[field_name]
             if field_name in keys_and_kinds:
-                value = ndb.Key(keys_and_kinds[field_name], json_attributes[field_name])
+                json_value = json_attributes[field_name]
+                if cls.__is_valid_key_id(json_value):
+                    value = ndb.Key(keys_and_kinds[field_name], long(json_value))
 
             setattr(instance, field_name, value)
         return instance
@@ -62,7 +64,9 @@ class GAEModel(AppEngineModel, Model):
         if bool(fields_to_filter & keys):  # check if there are keys in the fields to filter
             keys_and_kinds = cls._get_keys_and_kinds()
             for key, kind in keys_and_kinds.items():
-                query = query.filter(getattr(cls, key) == ndb.Key(kind, kwargs[key]))
+                key_id = kwargs[key]
+                if cls.__is_valid_key_id(key_id):
+                    query = query.filter(getattr(cls, key) == ndb.Key(kind, key_id))
 
         return query.fetch()
 
@@ -179,3 +183,10 @@ class GAEModel(AppEngineModel, Model):
         if isinstance(value, unicode):
             return value.encode('utf-8')
         return value
+
+    @classmethod
+    def __is_valid_key_id(cls, value):
+        if not str(value).isdigit():
+            raise Exception('ndb Key id should always be a long')
+
+        return True
