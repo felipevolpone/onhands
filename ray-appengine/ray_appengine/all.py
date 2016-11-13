@@ -77,7 +77,7 @@ class GAEModel(AppEngineModel, Model):
     @classmethod
     def update(cls, fields_to_update):
         if 'id' not in fields_to_update:
-            raise Exception('eh necessario passar o id no json')
+            raise Exception('You should provide an id')
 
         entity = ndb.Key(cls.__name__, fields_to_update['id']).get()
 
