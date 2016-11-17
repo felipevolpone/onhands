@@ -35,8 +35,11 @@ class User(GAEModel):
 @register
 class SimpleNoteAuthentication(Authentication):
 
-    salt_key = 'anything'
     expiration_time = 5
+
+    @classmethod
+    def salt_key(cls):
+        return 'anything'
 
     @classmethod
     def authenticate(cls, login_data):
